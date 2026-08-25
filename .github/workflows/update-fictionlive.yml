@@ -1,0 +1,34 @@
+name: Update Fiction.live Feed
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/15 * * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  update-feed:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Download Fiction.live story feed
+        run: |
+          curl --fail --location --retry 3 \
+          "https://fiction.live/api/anonkun/board/stories?contentRating=mature%2Cnsfw%2Cteen%2Cunrated&storyStatus=active%2Cfinished%2Chiatus&sort=active&length=Any&page=1&isMobile=true" \
+          -o stories.json
+
+      - name: Check that it is valid JSON
+        run: python -m json.tool stories.json > /dev/null
+
+      - name: Save updated feed
+        run: |
+          git config user.name "fictionlive-feed-bot"
+          git config user.email "fictionlive-feed-bot@users.noreply.github.com"
+          git add stories.json
+          git diff --cached --quiet || git commit -m "Update Fiction.live feed"
+          git push
