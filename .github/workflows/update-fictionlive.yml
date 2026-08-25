@@ -25,10 +25,13 @@ jobs:
       - name: Check that it is valid JSON
         run: python -m json.tool stories.json > /dev/null
 
+      - name: Build webpage
+        run: python render.py
+
       - name: Save updated feed
         run: |
           git config user.name "fictionlive-feed-bot"
           git config user.email "fictionlive-feed-bot@users.noreply.github.com"
-          git add stories.json
+          git add stories.json index.html
           git diff --cached --quiet || git commit -m "Update Fiction.live feed"
           git push
